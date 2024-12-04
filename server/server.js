@@ -1,3 +1,5 @@
+/** @format */
+
 const { clear } = require("console");
 const express = require("express");
 const http = require("http");
@@ -5,6 +7,7 @@ const WebSocket = require("ws");
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+const port = process.env.PORT_BACK || 4000;
 
 // Configuration de l'état du jeu -> Stocke les informations des joueurs et la grille de couleurs
 const gameState = {
@@ -17,9 +20,7 @@ const gameState = {
 
 // Chat en ligne -> Stocke les messages du chat
 const chat = [];
-const sounds = ['test.mp3'];
-
-
+const sounds = ["test.mp3"];
 
 // Fonction pour mettre à jour le jeu toutes les secondes -> Réinitialise la grille après 60 secondes
 setInterval(() => {
@@ -39,7 +40,6 @@ setInterval(() => {
 
   broadcastGameState();
 }, 1000);
-
 
 // Fonction pour diffuser à tous les clients l'état du jeu mis à jour
 function broadcastGameState() {
@@ -63,31 +63,30 @@ wss.on("connection", (ws) => {
     const data = JSON.parse(message);
 
     if (data.type === "chat") {
-        const chatMessage = { playerColor, message: data.message };
-        chat.push(chatMessage);
+      const chatMessage = { playerColor, message: data.message };
+      chat.push(chatMessage);
 
-        // Diffuser le chat
+      // Diffuser le chat
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "chat", chat }));
+        }
+      });
+    }
+
+    if (data.type === "sound") {
+      const selectedSound = sounds[data.soundIndex];
+      if (selectedSound) {
+        // Diffuser le son
         wss.clients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: "chat", chat }));
+            client.send(
+              JSON.stringify({ type: "sound", sound: selectedSound })
+            );
           }
         });
       }
-
-
-
-      if (data.type === "sound") {
-        const selectedSound = sounds[data.soundIndex];
-        if (selectedSound) {
-          // Diffuser le son
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ type: "sound", sound: selectedSound }));
-            }
-          });
-        }
-      }
-
+    }
 
     //calculer le score des joueurs
     if (data.type === "score") {
@@ -100,8 +99,6 @@ wss.on("connection", (ws) => {
       });
       ws.send(JSON.stringify({ type: "score", playersScore }));
     }
-
-
 
     if (data.type === "move") {
       const player = gameState.players[playerId];
@@ -134,7 +131,6 @@ wss.on("connection", (ws) => {
         }
       });
     }
-
   });
   // Gérer la déconnexion du joueur -> Si un joueur se déconnecte, supprimez-le de l'état du jeu
   ws.on("close", () => {
@@ -148,7 +144,7 @@ wss.on("connection", (ws) => {
 });
 
 // Serveur Express
-server.listen(8080, () => {
+server.listen(port, () => {
   clear();
   const separator = "═".repeat(50);
   console.log(`\n${separator}`);
