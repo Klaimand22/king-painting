@@ -95,7 +95,7 @@ const App = () => {
   }, [chat]);
 
   return (
-    <div className="h-screen bg-black text-white flex w-screen">
+    <div className="h-screen bg-black text-white flex w-screen min-h-screen overflow-hidden">
       {/* Tableau des scores */}
       <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white h-screen">
         <h1 className="text-xl font-bold mb-4">Tableau des Scores</h1>
