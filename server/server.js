@@ -20,8 +20,14 @@ const gameState = {
   chat: [], // Ajout d'un tableau pour stocker les messages de chat
 };
 
-// Liste des sons disponibles
-const sounds = ["sound1.mp3", "sound2.mp3", "sound3.mp3"]; // Remplacez par vos fichiers sonores
+const sounds = [
+  "sound1.mp3",
+  "sound2.mp3",
+  "sound3.mp3",
+  "sound4.mp3",
+  "sound5.mp3",
+  "sound6.mp3",
+];
 
 // Réinitialisation périodique de la grille et des scores
 setInterval(() => {
@@ -131,7 +137,12 @@ wss.on("connection", (ws) => {
     color: playerColor,
     score: 0,
     direction: { dx: 1, dy: 0 }, // Direction initiale
+    playerId,
   };
+
+  // Envoyer l'ID du joueur courant au client
+  ws.send(JSON.stringify({ type: "currentPlayer", playerId }));
+
   broadcastGameState();
 
   ws.on("message", (message) => {
@@ -161,7 +172,7 @@ wss.on("connection", (ws) => {
         case "sound":
           const selectedSound = sounds[data.soundIndex];
           if (selectedSound) {
-            // Diffuser le son
+            // Diffuser le son à tous les clients
             wss.clients.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(

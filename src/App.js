@@ -17,6 +17,21 @@ const App = () => {
   const wsRef = useRef(null);
   const chatEndRef = useRef(null);
   const [timer, setTimer] = useState(10);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
+  const soundList = [
+    "sound1.mp3",
+    "sound2.mp3",
+    "sound3.mp3",
+    "sound4.mp3",
+    "sound5.mp3",
+    "sound6.mp3",
+  ];
+
+  const playSound = (index) => {
+    if (wsRef.current) {
+      wsRef.current.send(JSON.stringify({ type: "sound", soundIndex: index }));
+    }
+  };
 
   useEffect(() => {
     const wsUrl = process.env.REACT_APP_WEBSOCKET_URL;
@@ -38,6 +53,19 @@ const App = () => {
 
     wsRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
+
+      if (data.type === "sound") {
+        // Lecture du son reçu
+        //const audio = new Audio(`/sounds/${data.sound}`);
+        //audio.play();
+        console.log("Son reçu :", data.sound);
+      }
+
+      if (data.type === "currentPlayer") {
+        setCurrentPlayer(data.playerId); // Stocker l'ID du joueur courant
+        console.log("Vous êtes le joueur", data.playerId);
+      }
+
       if (data.type === "update") {
         setGrid(data.gameState.grid);
         setPlayers(data.gameState.players);
@@ -45,7 +73,6 @@ const App = () => {
       }
       if (data.type === "chat") {
         setChat(data.chat);
-        console.log(data.chat);
       }
       if (data.type === "sound") {
         const audio = new Audio(`/sounds/${data.sound}`);
@@ -85,10 +112,6 @@ const App = () => {
     }
   };
 
-  const playSound = (index) => {
-    wsRef.current.send(JSON.stringify({ type: "sound", soundIndex: index }));
-  };
-
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -116,6 +139,9 @@ const App = () => {
                 <div className="text-sm font-medium">
                   <span className="text-gray-400">{player.name}</span>:{" "}
                   {player.score} %
+                  {player.playerId === currentPlayer && (
+                    <span className="text-yellow-400"> (vous)</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -162,7 +188,6 @@ const App = () => {
           ))}
         </div>
       </main>
-
       {/* Chat et Soundboard */}
       <aside className="bg-black p-4 flex flex-col items-start border-l border-white h-full min-h-0">
         <h1 className="text-xl font-bold mb-4">Chat en ligne</h1>
@@ -172,9 +197,7 @@ const App = () => {
               <span className="text-gray-400">
                 {msg.message.split("\n").map((line, lineIndex) => {
                   const colorMatch = line.match(/#([0-9a-fA-F]{6})/); // Correspondance des couleurs hexadécimales
-                  //extraire le score du joueur
                   const scoreMatch = line;
-                  //enlever le code couleur du message du joueur
                   const message = line.replace(/#([0-9a-fA-F]{6})/g, "");
 
                   const lineColor = colorMatch
@@ -229,17 +252,20 @@ const App = () => {
           </button>
         </div>
         <h1 className="text-xl font-bold mt-6 mb-2">Soundboard</h1>
-        <div className="flex flex-wrap gap-2">
-          {["Sound 1", "Sound 2", "Sound 5"].map((label, index) => (
-            <button
-              key={index}
-              onClick={() => playSound(index)}
-              className="bg-gray-700 px-4 py-2 text-sm rounded hover:bg-gray-600"
-            >
-              {label}
-            </button>
-          ))}
+        <div className="w-full mb-4 h-auto overflow-y-auto p-4 flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            {soundList.map((sound, index) => (
+              <button
+                key={index}
+                onClick={() => playSound(index)}
+                className="bg-gray-700 px-4 py-2 text-sm rounded hover:bg-gray-600"
+              >
+                Sound {index + 1}
+              </button>
+            ))}
+          </div>
         </div>
+
         <h1 className="text-xl font-bold mt-6 mb-2">Règles du jeu</h1>
         <p className="text-sm">
           - Déplacez-vous avec les flèches du clavier
