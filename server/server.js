@@ -7,7 +7,6 @@ const WebSocket = require("ws");
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const port = process.env.PORT_BACK || 4000;
 
 // Configuration de l'état du jeu -> Stocke les informations des joueurs et la grille de couleurs
 const gameState = {
@@ -143,12 +142,14 @@ wss.on("connection", (ws) => {
   });
 });
 
+console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
+
 // Serveur Express
-server.listen(port, () => {
-  clear();
-  const separator = "═".repeat(50);
-  console.log(`\n${separator}`);
-  console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
-  console.log(`🚀 En écoute sur le port : \x1b[33m8080\x1b[0m`);
-  console.log(`${separator}\n`);
-});
+//server.listen(port, () => {
+// clear();
+//const separator = "═".repeat(50);
+//console.log(`\n${separator}`);
+//console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
+// console.log(`🚀 En écoute sur le port : \x1b[33m8080\x1b[0m`);
+// console.log(`${separator}\n`);
+//});
