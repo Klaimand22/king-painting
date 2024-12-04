@@ -95,11 +95,11 @@ const App = () => {
   }, [chat]);
 
   return (
-    <div className="h-screen bg-black text-white flex w-screen min-h-screen overflow-hidden">
+    <div className="h-screen bg-black text-white flex w-screen min-h-screen overflow-y-auto">
       {/* Tableau des scores */}
-      <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white h-screen">
+      <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white h-full min-h-0">
         <h1 className="text-xl font-bold mb-4">Tableau des Scores</h1>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 overflow-y-auto">
           {Object.values(players).map((player, index) => (
             <div key={index} className="flex items-center gap-2">
               <div
@@ -120,7 +120,7 @@ const App = () => {
       </aside>
 
       {/* Aire de jeu */}
-      <main className="flex-1 flex flex-col items-center justify-center">
+      <main className="flex-1 flex flex-col items-center justify-center min-h-0">
         <h1 className="text-3xl font-bold mb-16">King-Painting</h1>
         <div className="text-2xl font-bold mb-16">
           {timer} secondes restantes
@@ -160,7 +160,6 @@ const App = () => {
           ))}
         </div>
         <p className="text-sm mt-8 text-center font-sans">
-          {" "}
           Utilisez les touches flèches pour vous déplacer
         </p>
         <p className="text-sm mt-8 text-center font-sans">
@@ -170,9 +169,9 @@ const App = () => {
       </main>
 
       {/* Chat et Soundboard */}
-      <aside className=" bg-black p-4 flex flex-col items-start border-l border-white">
+      <aside className="bg-black p-4 flex flex-col items-start border-l border-white h-full min-h-0">
         <h1 className="text-xl font-bold mb-4">Chat en ligne</h1>
-        <div className="flex flex-col gap-2 mb-4 overflow-y-scroll h-64 w-full">
+        <div className="flex flex-col gap-2 mb-4 overflow-y-auto h-64 w-full">
           {chat.map((msg, index) => (
             <div key={index} className="text-sm">
               <span className="text-gray-400">

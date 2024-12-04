@@ -17,7 +17,11 @@ const gameState = {
     .fill()
     .map(() => Array(50).fill(null)), // Grille de couleurs
   timer: 10,
+  chat: [], // Ajout d'un tableau pour stocker les messages de chat
 };
+
+// Liste des sons disponibles
+const sounds = ["sound1.mp3", "sound2.mp3", "sound3.mp3"]; // Remplacez par vos fichiers sonores
 
 // Réinitialisation périodique de la grille et des scores
 setInterval(() => {
@@ -50,7 +54,7 @@ setInterval(() => {
     }
   });
   broadcastGameState();
-}, 50); // Mise à jour toutes les 100ms
+}, 50); // Mise à jour toutes les 50ms
 
 // Diffusion de l'état du jeu à tous les clients
 function broadcastGameState() {
@@ -76,12 +80,55 @@ wss.on("connection", (ws) => {
   broadcastGameState();
 
   ws.on("message", (message) => {
-    const data = JSON.parse(message);
-    const player = gameState.players[playerId];
+    try {
+      const data = JSON.parse(message);
+      const player = gameState.players[playerId];
 
-    // Changement de direction
-    if (data.type === "changeDirection" && player) {
-      player.direction = data.direction;
+      switch (data.type) {
+        case "chat":
+          if (data.message) {
+            const chatMessage = { playerColor, message: data.message };
+            gameState.chat.push(chatMessage);
+
+            // Diffuser le chat
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(
+                  JSON.stringify({ type: "chat", chat: gameState.chat })
+                );
+              }
+            });
+          }
+          break;
+
+        case "sound":
+          const selectedSound = sounds[data.soundIndex];
+          if (selectedSound) {
+            // Diffuser le son
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(
+                  JSON.stringify({ type: "sound", sound: selectedSound })
+                );
+              }
+            });
+          }
+          break;
+
+        case "changeDirection":
+          if (player && data.direction) {
+            player.direction = data.direction;
+          }
+          break;
+
+        default:
+          console.log("Type de message non reconnu :", data.type);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la gestion d'un message WebSocket :",
+        error
+      );
     }
   });
 
@@ -106,6 +153,6 @@ server.listen(port, () => {
   const separator = "═".repeat(50);
   console.log(`\n${separator}`);
   console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
-  console.log(`🚀 En écoute sur le port : \x1b[33m8080\x1b[0m`);
+  console.log(`🚀 En écoute sur le port : \x1b[33m${port}\x1b[0m`);
   console.log(`${separator}\n`);
 });
