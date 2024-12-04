@@ -4,6 +4,8 @@ import React, { useEffect, useState, useRef } from "react";
 
 const GRID_SIZE = 50;
 const CELL_SIZE = 10;
+const WebSocketServeur =
+  process.env.REACT_APP_WS_SERVER || "ws://localhost:8080";
 
 const App = () => {
   const [grid, setGrid] = useState(
@@ -20,7 +22,7 @@ const App = () => {
   const [timer, setTimer] = useState(10);
 
   useEffect(() => {
-    wsRef.current = new WebSocket();
+    wsRef.current = new WebSocket(WebSocketServeur);
 
     wsRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
