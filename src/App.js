@@ -1,3 +1,5 @@
+/** @format */
+
 import React, { useEffect, useState, useRef } from "react";
 
 const GRID_SIZE = 50;
@@ -5,7 +7,9 @@ const CELL_SIZE = 10;
 
 const App = () => {
   const [grid, setGrid] = useState(
-    Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(null))
+    Array(GRID_SIZE)
+      .fill()
+      .map(() => Array(GRID_SIZE).fill(null))
   );
   const [players, setPlayers] = useState({});
   const [chat, setChat] = useState([]);
@@ -16,7 +20,7 @@ const App = () => {
   const [timer, setTimer] = useState(10);
 
   useEffect(() => {
-    wsRef.current = new WebSocket("ws://localhost:8080");
+    wsRef.current = new WebSocket("ws://localhost");
 
     wsRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
@@ -24,7 +28,6 @@ const App = () => {
         setGrid(data.gameState.grid);
         setPlayers(data.gameState.players);
         setTimer(data.gameState.timer);
-
       }
       if (data.type === "chat") {
         setChat(data.chat);
@@ -72,7 +75,6 @@ const App = () => {
     }
   }, [chat]);
 
-
   return (
     <div className="min-h-screen bg-black text-white flex">
       {/* Tableau des scores */}
@@ -101,7 +103,9 @@ const App = () => {
       {/* Aire de jeu */}
       <main className="flex-1 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold mb-16">King-Painting</h1>
-        <div className="text-2xl font-bold mb-16">{timer} secondes restantes</div>
+        <div className="text-2xl font-bold mb-16">
+          {timer} secondes restantes
+        </div>
         <div
           className="relative"
           style={{
@@ -136,8 +140,14 @@ const App = () => {
             />
           ))}
         </div>
-        <p className="text-sm mt-8 font-sans"> Utilisez les touches fléchées pour vous déplacer</p>
-        <p className="text-sm font-sans">Le but du jeu est de colorier le plus de cases possible avant la fin du temps imparti</p>
+        <p className="text-sm mt-8 font-sans">
+          {" "}
+          Utilisez les touches fléchées pour vous déplacer
+        </p>
+        <p className="text-sm font-sans">
+          Le but du jeu est de colorier le plus de cases possible avant la fin
+          du temps imparti
+        </p>
       </main>
 
       {/* Chat et Soundboard */}
@@ -146,12 +156,22 @@ const App = () => {
         <div className="flex flex-col gap-2 mb-4 overflow-y-scroll h-64 w-full">
           {chat.map((msg, index) => (
             <div key={index} className="text-sm">
-              <span className="text-gray-400"><div style={{ backgroundColor: msg.playerColor, width: '10px', height: '10px', display: 'inline-block', marginRight: '5px' }}></div>{msg.message}</span>
+              <span className="text-gray-400">
+                <div
+                  style={{
+                    backgroundColor: msg.playerColor,
+                    width: "10px",
+                    height: "10px",
+                    display: "inline-block",
+                    marginRight: "5px",
+                  }}
+                ></div>
+                {msg.message}
+              </span>
             </div>
           ))}
-        <div ref={chatEndRef} />
+          <div ref={chatEndRef} />
         </div>
-
 
         <div className="flex items-center gap-2">
           <input
