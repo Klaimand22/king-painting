@@ -16,11 +16,25 @@ const App = () => {
   const [message, setMessage] = useState("");
   const wsRef = useRef(null);
   const chatEndRef = useRef(null);
-
   const [timer, setTimer] = useState(10);
 
   useEffect(() => {
-    wsRef.current = new WebSocket();
+    const wsUrl = process.env.REACT_APP_WEBSOCKET_URL;
+
+    if (!wsUrl) {
+      console.error(
+        "Aucune URL WebSocket définie. Vérifiez REACT_APP_WEBSOCKET_URL."
+      );
+      return;
+    }
+
+    // Connexion au serveur WebSocket
+
+    wsRef.current = new WebSocket(wsUrl);
+
+    wsRef.current.onopen = () => {
+      console.log("Connexion établie avec le serveur WebSocket");
+    };
 
     wsRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
