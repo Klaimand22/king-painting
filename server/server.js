@@ -3,10 +3,12 @@
 const { clear } = require("console");
 const express = require("express");
 const http = require("http");
+const path = require("path");
 const WebSocket = require("ws");
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+const port = process.env.PORT || 8080;
 
 // Configuration de l'état du jeu -> Stocke les informations des joueurs et la grille de couleurs
 const gameState = {
@@ -142,14 +144,21 @@ wss.on("connection", (ws) => {
   });
 });
 
-console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
+// render le front end react
 
-// Serveur Express
-//server.listen(port, () => {
-// clear();
-//const separator = "═".repeat(50);
-//console.log(`\n${separator}`);
-//console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
-// console.log(`🚀 En écoute sur le port : \x1b[33m8080\x1b[0m`);
-// console.log(`${separator}\n`);
-//});
+app.use(express.static(path.join(__dirname, "__dirname", "../dist")));
+
+//pour toute sles route non gérées par express, on renvoie le fichier index.html
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../dist, index.html"));
+});
+
+server.listen(port, () => {
+  clear();
+  const separator = "═".repeat(50);
+  console.log(`\n${separator}`);
+  console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
+  console.log(`🚀 En écoute sur le port : \x1b[33m8080\x1b[0m`);
+  console.log(`${separator}\n`);
+});
