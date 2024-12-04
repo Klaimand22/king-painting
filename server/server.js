@@ -27,12 +27,58 @@ const sounds = ["sound1.mp3", "sound2.mp3", "sound3.mp3"]; // Remplacez par vos 
 setInterval(() => {
   gameState.timer -= 1;
   if (gameState.timer <= 0) {
+    //diffuser une message dans le chat pour annoncer la fin du jeu avec le score des joueurs
+    const scores = Object.values(gameState.players).map(
+      (player) => `${player.color}: ${player.score}%`
+    );
+
+    const scorePlayerPodium = Object.values(gameState.players).sort(
+      (a, b) => b.score - a.score
+    );
+
+    switch (scorePlayerPodium.length) {
+      case 1:
+        const chatMessage1 = {
+          message: `____________________________\n 🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}% \n ____________________________`,
+        };
+        gameState.chat.push(chatMessage1);
+        break;
+
+      case 2:
+        const chatMessage2 = {
+          message: `____________________________\n 🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}% \n ____________________________`,
+        };
+        gameState.chat.push(chatMessage2);
+        break;
+
+      case 3:
+        const chatMessage3 = {
+          message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
+        };
+        gameState.chat.push(chatMessage3);
+        break;
+
+      default:
+        const chatMessage4 = {
+          message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
+        };
+        gameState.chat.push(chatMessage4);
+        break;
+    }
+
+    // Diffuser le chat
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: "chat", chat: gameState.chat }));
+      }
+    });
+
     gameState.timer = 60;
     gameState.grid = gameState.grid.map((row) => row.map(() => null));
     Object.values(gameState.players).forEach((player) => (player.score = 0));
   }
   broadcastGameState();
-}, 2000);
+}, 1000);
 
 // Mise à jour automatique des positions des joueurs
 setInterval(() => {

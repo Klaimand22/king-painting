@@ -45,6 +45,7 @@ const App = () => {
       }
       if (data.type === "chat") {
         setChat(data.chat);
+        console.log(data.chat);
       }
       if (data.type === "sound") {
         const audio = new Audio(`/sounds/${data.sound}`);
@@ -100,28 +101,29 @@ const App = () => {
       <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white h-full min-h-0">
         <h1 className="text-xl font-bold mb-4">Tableau des Scores</h1>
         <div className="flex flex-col gap-3 overflow-y-auto">
-          {Object.values(players).map((player, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <div
-                style={{
-                  backgroundColor: player.color,
-                  width: "20px",
-                  height: "20px",
-                }}
-                className="rounded"
-              />
-              <div className="text-sm font-medium">
-                <span className="text-gray-400">{player.id}</span>:{" "}
-                {player.score} %
+          {Object.values(players)
+            .sort((a, b) => b.score - a.score) // Trier les joueurs par score décroissant
+            .map((player, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div
+                  style={{
+                    backgroundColor: player.color,
+                    width: "20px",
+                    height: "20px",
+                  }}
+                  className="rounded"
+                />
+                <div className="text-sm font-medium">
+                  <span className="text-gray-400">{player.name}</span>:{" "}
+                  {player.score} %
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </aside>
-
       {/* Aire de jeu */}
       <main className="flex-1 flex flex-col items-center justify-center min-h-0">
-        <h1 className="text-3xl font-bold mb-8">King-Painting</h1>
+        <h1 className="text-5xl font-bold mb-8">King-Painting</h1>
         <div className="text-2xl font-bold mb-16">
           {timer} secondes restantes
         </div>
@@ -168,19 +170,46 @@ const App = () => {
           {chat.map((msg, index) => (
             <div key={index} className="text-sm">
               <span className="text-gray-400">
-                <div
-                  style={{
-                    backgroundColor: msg.playerColor,
-                    width: "10px",
-                    height: "10px",
-                    display: "inline-block",
-                    marginRight: "5px",
-                  }}
-                ></div>
-                {msg.message}
+                {msg.message.split("\n").map((line, lineIndex) => {
+                  const colorMatch = line.match(/#([0-9a-fA-F]{6})/); // Correspondance des couleurs hexadécimales
+                  //extraire le score du joueur
+                  const scoreMatch = line;
+                  //enlever le code couleur du message du joueur
+                  const message = line.replace(/#([0-9a-fA-F]{6})/g, "");
+
+                  const lineColor = colorMatch
+                    ? colorMatch[0]
+                    : msg.playerColor;
+                  const lineScore = scoreMatch ? scoreMatch[0] : null;
+                  return (
+                    <div
+                      key={lineIndex}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          backgroundColor: lineColor,
+                          width: "10px",
+                          height: "10px",
+                          marginRight: "5px",
+                        }}
+                      ></div>
+                      <span>
+                        {lineScore && (
+                          <span className="text-gray-400">{message}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </span>
             </div>
           ))}
+
           <div ref={chatEndRef} />
         </div>
         <div className="flex items-center gap-2">
@@ -194,14 +223,14 @@ const App = () => {
           />
           <button
             onClick={sendMessage}
-            className="bg-blue-500 px-4 py-2 text-sm rounded"
+            className="bg-blue-500 px-4 py-2 text-sm rounded hover:bg-blue-600 transition-colors duration-300"
           >
             Envoyer
           </button>
         </div>
         <h1 className="text-xl font-bold mt-6 mb-2">Soundboard</h1>
         <div className="flex flex-wrap gap-2">
-          {["Sound 1", "Sound 2", "Sound 3"].map((label, index) => (
+          {["Sound 1", "Sound 2", "Sound 5"].map((label, index) => (
             <button
               key={index}
               onClick={() => playSound(index)}
