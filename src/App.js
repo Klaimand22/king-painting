@@ -56,14 +56,19 @@ const App = () => {
   }, []);
 
   const handleKeyDown = (e) => {
-    const moves = {
+    const directions = {
       ArrowUp: { dx: 0, dy: -1 },
       ArrowDown: { dx: 0, dy: 1 },
       ArrowLeft: { dx: -1, dy: 0 },
       ArrowRight: { dx: 1, dy: 0 },
     };
-    if (moves[e.key]) {
-      wsRef.current.send(JSON.stringify({ type: "move", ...moves[e.key] }));
+    if (directions[e.key]) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "changeDirection",
+          direction: directions[e.key],
+        })
+      );
     }
   };
 
@@ -90,9 +95,9 @@ const App = () => {
   }, [chat]);
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="h-screen bg-black text-white flex w-screen">
       {/* Tableau des scores */}
-      <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white">
+      <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white h-screen">
         <h1 className="text-xl font-bold mb-4">Tableau des Scores</h1>
         <div className="flex flex-col gap-3">
           {Object.values(players).map((player, index) => (
@@ -154,11 +159,11 @@ const App = () => {
             />
           ))}
         </div>
-        <p className="text-sm mt-8 font-sans">
+        <p className="text-sm mt-8 text-center font-sans">
           {" "}
-          Utilisez les touches fléchées pour vous déplacer
+          Utilisez les touches flèches pour vous déplacer
         </p>
-        <p className="text-sm font-sans">
+        <p className="text-sm mt-8 text-center font-sans">
           Le but du jeu est de colorier le plus de cases possible avant la fin
           du temps imparti
         </p>

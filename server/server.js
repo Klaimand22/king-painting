@@ -1,48 +1,58 @@
 /** @format */
-
 const { clear } = require("console");
 const express = require("express");
 const http = require("http");
 const path = require("path");
 const WebSocket = require("ws");
+
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const port = process.env.PORT || 8080;
 
-// Configuration de l'état du jeu -> Stocke les informations des joueurs et la grille de couleurs
+// Configuration de l'état du jeu
 const gameState = {
-  players: {}, // Stocke les informations des joueurs { id: { x, y, color, score } }
+  players: {}, // { id: { x, y, color, score, direction: { dx, dy } } }
   grid: Array(50)
     .fill()
-    .map(() => Array(50).fill(null)), // Stocke les couleurs de la grille
+    .map(() => Array(50).fill(null)), // Grille de couleurs
   timer: 10,
 };
 
-// Chat en ligne -> Stocke les messages du chat
-const chat = [];
-const sounds = ["test.mp3"];
-
-// Fonction pour mettre à jour le jeu toutes les secondes -> Réinitialise la grille après 60 secondes
+// Réinitialisation périodique de la grille et des scores
 setInterval(() => {
   gameState.timer -= 1;
   if (gameState.timer <= 0) {
     gameState.timer = 60;
     gameState.grid = gameState.grid.map((row) => row.map(() => null));
+    Object.values(gameState.players).forEach((player) => (player.score = 0));
   }
-
-  // si le timer est à 0, on remet à 0 les scores des joueurs et on enleve les couleurs de la grille
-  if (gameState.timer === 0) {
-    Object.keys(gameState.players).forEach((playerId) => {
-      gameState.players[playerId].score = 0;
-    });
-    gameState.grid = gameState.grid.map((row) => row.map(() => null));
-  }
-
   broadcastGameState();
-}, 1000);
+}, 2000);
 
-// Fonction pour diffuser à tous les clients l'état du jeu mis à jour
+// Mise à jour automatique des positions des joueurs
+setInterval(() => {
+  Object.values(gameState.players).forEach((player) => {
+    if (player) {
+      // Mise à jour des positions en fonction de la direction
+      player.x = Math.max(0, Math.min(49, player.x + player.direction.dx));
+      player.y = Math.max(0, Math.min(49, player.y + player.direction.dy));
+
+      // Coloration de la grille
+      gameState.grid[player.y][player.x] = player.color;
+
+      // Calcul du score en fonction des cellules peintes
+      const totalCells = gameState.grid.flat().length;
+      const paintedCells = gameState.grid
+        .flat()
+        .filter((cell) => cell === player.color).length;
+      player.score = Math.floor((paintedCells / totalCells) * 100);
+    }
+  });
+  broadcastGameState();
+}, 50); // Mise à jour toutes les 100ms
+
+// Diffusion de l'état du jeu à tous les clients
 function broadcastGameState() {
   const state = JSON.stringify({ type: "update", gameState });
   wss.clients.forEach((client) => {
@@ -52,91 +62,32 @@ function broadcastGameState() {
   });
 }
 
-// Gérer les connexions WebSocket des clients -> Gérer les messages de déplacement et de score
+// Gestion des connexions WebSocket
 wss.on("connection", (ws) => {
   const playerId = Math.random().toString(36).substr(2, 9);
   const playerColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-  gameState.players[playerId] = { x: 25, y: 25, color: playerColor, score: 0 };
+  gameState.players[playerId] = {
+    x: 25,
+    y: 25,
+    color: playerColor,
+    score: 0,
+    direction: { dx: 1, dy: 0 }, // Direction initiale
+  };
   broadcastGameState();
 
-  // Gérer les messages des clients -> Gérer les déplacements et les scores
   ws.on("message", (message) => {
     const data = JSON.parse(message);
+    const player = gameState.players[playerId];
 
-    if (data.type === "chat") {
-      const chatMessage = { playerColor, message: data.message };
-      chat.push(chatMessage);
-
-      // Diffuser le chat
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: "chat", chat }));
-        }
-      });
-    }
-
-    if (data.type === "sound") {
-      const selectedSound = sounds[data.soundIndex];
-      if (selectedSound) {
-        // Diffuser le son
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(
-              JSON.stringify({ type: "sound", sound: selectedSound })
-            );
-          }
-        });
-      }
-    }
-
-    //calculer le score des joueurs
-    if (data.type === "score") {
-      const players = gameState.players;
-      const playersScore = Object.keys(players).map((playerId) => {
-        return {
-          id: playerId,
-          score: players[playerId].score,
-        };
-      });
-      ws.send(JSON.stringify({ type: "score", playersScore }));
-    }
-
-    if (data.type === "move") {
-      const player = gameState.players[playerId];
-      if (player) {
-        // Mise à jour de la position du joueur
-        const { dx, dy } = data;
-        player.x = Math.max(0, Math.min(49, player.x + dx));
-        player.y = Math.max(0, Math.min(49, player.y + dy));
-
-        // Peindre sur la grille
-        gameState.grid[player.y][player.x] = player.color;
-
-        // calculer le score suivant la peinture de la meme couleur de joueur en fonction de la surface totale de la grille
-        const totalCells = gameState.grid.flat().length;
-        const playerCells = gameState.grid
-          .flat()
-          .filter((cell) => cell === player.color).length;
-        player.score = Math.floor((playerCells / totalCells) * 100);
-
-        // Diffuser les changements
-        broadcastGameState();
-      }
-    }
-
-    if (data.type === "chat") {
-      chat.push(data.message);
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: "chat", chat }));
-        }
-      });
+    // Changement de direction
+    if (data.type === "changeDirection" && player) {
+      player.direction = data.direction;
     }
   });
-  // Gérer la déconnexion du joueur -> Si un joueur se déconnecte, supprimez-le de l'état du jeu
+
+  // Déconnexion du joueur
   ws.on("close", () => {
     delete gameState.players[playerId];
-    // supprimer les cellules peintes par le joueur
     gameState.grid = gameState.grid.map((row) =>
       row.map((cell) => (cell === playerColor ? null : cell))
     );
@@ -146,8 +97,6 @@ wss.on("connection", (ws) => {
 
 // Rendre le front-end React
 app.use(express.static(path.resolve(__dirname, "../build")));
-
-// Pour toutes les routes non gérées par Express, on renvoie le fichier index.html
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../build", "index.html"));
 });
