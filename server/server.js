@@ -81,9 +81,11 @@ wss.on("connection", (ws) => {
 
   ws.on("message", (message) => {
     try {
+      // Analyser le message JSON
       const data = JSON.parse(message);
+      // Récupérer le joueur actuel
       const player = gameState.players[playerId];
-
+      // Gestion des messages WebSocket
       switch (data.type) {
         case "chat":
           if (data.message) {
