@@ -36,34 +36,43 @@ setInterval(() => {
       (a, b) => b.score - a.score
     );
 
-    switch (scorePlayerPodium.length) {
-      case 1:
-        const chatMessage1 = {
-          message: `____________________________\n 🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}% \n ____________________________`,
-        };
-        gameState.chat.push(chatMessage1);
-        break;
+    // GERER LES CAS SELON LE NOMBRE DE JOUEURS
+    if (scorePlayerPodium.length === 0) {
+      const chatMessage0 = {
+        message: `____________________________\n🏆 Fin du jeu ! 🏆\nAucun joueur n'a participé !\n ____________________________`,
+      };
+      gameState.chat.push(chatMessage0);
+    } else {
+      switch (scorePlayerPodium.length) {
+        case 1:
+          const chatMessage1 = {
+            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}% \n ____________________________`,
+          };
+          gameState.chat.push(chatMessage1);
+          break;
 
-      case 2:
-        const chatMessage2 = {
-          message: `____________________________\n 🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}% \n ____________________________`,
-        };
-        gameState.chat.push(chatMessage2);
-        break;
+        case 2:
+          const chatMessage2 = {
+            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}% \n ____________________________`,
+          };
+          gameState.chat.push(chatMessage2);
+          break;
 
-      case 3:
-        const chatMessage3 = {
-          message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
-        };
-        gameState.chat.push(chatMessage3);
-        break;
+        case 3:
+          const chatMessage3 = {
+            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
+          };
+          gameState.chat.push(chatMessage3);
+          break;
 
-      default:
-        const chatMessage4 = {
-          message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
-        };
-        gameState.chat.push(chatMessage4);
-        break;
+        default: // Pour les cas où il y a plus de 3 joueurs
+          const chatMessage4 = {
+            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
+          };
+
+          gameState.chat.push(chatMessage4);
+          break;
+      }
     }
 
     // Diffuser le chat
