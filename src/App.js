@@ -121,7 +121,7 @@ const App = () => {
 
       {/* Aire de jeu */}
       <main className="flex-1 flex flex-col items-center justify-center min-h-0">
-        <h1 className="text-3xl font-bold mb-16">King-Painting</h1>
+        <h1 className="text-3xl font-bold mb-8">King-Painting</h1>
         <div className="text-2xl font-bold mb-16">
           {timer} secondes restantes
         </div>
@@ -159,13 +159,6 @@ const App = () => {
             />
           ))}
         </div>
-        <p className="text-sm mt-8 text-center font-sans">
-          Utilisez les touches flèches pour vous déplacer
-        </p>
-        <p className="text-sm mt-8 text-center font-sans">
-          Le but du jeu est de colorier le plus de cases possible avant la fin
-          du temps imparti
-        </p>
       </main>
 
       {/* Chat et Soundboard */}
@@ -190,7 +183,6 @@ const App = () => {
           ))}
           <div ref={chatEndRef} />
         </div>
-
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -207,7 +199,6 @@ const App = () => {
             Envoyer
           </button>
         </div>
-
         <h1 className="text-xl font-bold mt-6 mb-2">Soundboard</h1>
         <div className="flex flex-wrap gap-2">
           {["Sound 1", "Sound 2", "Sound 3"].map((label, index) => (
@@ -220,6 +211,13 @@ const App = () => {
             </button>
           ))}
         </div>
+        <h1 className="text-xl font-bold mt-6 mb-2">Règles du jeu</h1>
+        <p className="text-sm">
+          - Déplacez-vous avec les flèches du clavier
+          <br />
+          - Coloriez le plus de cases possible
+          <br />- Le joueur avec le plus de cases coloriées gagne
+        </p>
       </aside>
     </div>
   );
