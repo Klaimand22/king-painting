@@ -6,14 +6,15 @@ import { KeyboardIcon, PaintbrushIcon } from "lucide-react";
 import Game from "./Game";
 
 // fetch en post pour récupérer le nombre de joueurs /api/players
-let nombreJoueurs = 0;
+
+const [nombreJoueurs, setNombreJoueurs] = useState(0);
 fetch("/api/players", {
   method: "POST",
 })
   .then((response) => response.json())
   .then((data) => {
-    nombreJoueurs = data;
-    console.log("Nombre de joueurs :", nombreJoueurs);
+    setNombreJoueurs(data);
+    console.log("Nombre de joueurs en ligne :", nombreJoueurs);
   });
 
 // Composants pour chaque page
