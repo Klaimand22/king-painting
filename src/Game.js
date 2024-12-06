@@ -184,7 +184,7 @@ const Game = () => {
               <span className="text-gray-400">
                 {msg.message.split("\n").map((line, lineIndex) => {
                   {
-                    /*____________________________________REDECOUPE LE TEXTE_______________________________________*/
+                    /*____________________________________REDECOUPE LE TEXTE DU CHAT_______________________________________*/
                   }
                   const colorMatch = line.match(/#([0-9a-fA-F]{6})/);
                   const scoreMatch = line;

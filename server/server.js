@@ -146,7 +146,7 @@ wss.on("connection", (ws) => {
       }
     });
     broadcastGameState();
-  }, 50);
+  }, 50); // 50 ms pour une meilleure fluidité sur Render - Test en localhost a 10ms
 
   // Réinitialisation périodique de la grille et des scores (toutes les secondes)
   setInterval(() => {
