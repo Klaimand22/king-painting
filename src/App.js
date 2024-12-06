@@ -6,9 +6,7 @@ import { PaintbrushIcon } from "lucide-react";
 import Game from "./Game";
 import { useState } from "react";
 
-// fetch en post pour récupérer le nombre de joueurs /api/players
-
-// Composants pour chaque page
+//
 function Home() {
   const [nombreJoueurs, setNombreJoueurs] = useState(0);
   fetch("/api/players", {

@@ -1,4 +1,6 @@
 /** @format */
+
+//__________________________ DECLARATION DES VARIABLES __________________________
 const { clear } = require("console");
 const express = require("express");
 const http = require("http");
@@ -11,16 +13,6 @@ const wss = new WebSocket.Server({ server });
 const port = process.env.PORT || 8080;
 const timer = 60;
 
-// Configuration de l'état du jeu
-const gameState = {
-  players: {}, // { id: { x, y, color, score, direction: { dx, dy } } }
-  grid: Array(50)
-    .fill()
-    .map(() => Array(50).fill(null)), // Grille de couleurs
-  timer: timer, // Timer de jeu
-  chat: [], // Ajout d'un tableau pour stocker les messages de chat
-};
-
 const sounds = [
   "sound1.mp3",
   "sound2.mp3",
@@ -30,107 +22,19 @@ const sounds = [
   "sound6.mp3",
 ];
 
-// Réinitialisation périodique de la grille et des scores
-setInterval(() => {
-  gameState.timer -= 1;
-  if (gameState.timer <= 0) {
-    //diffuser une message dans le chat pour annoncer la fin du jeu avec le score des joueurs
-    //creation tableau des scores
-    const scores = Object.values(gameState.players).map(
-      (player) => `${player.color}: ${player.score}%`
-    );
-    const scorePlayerPodium = Object.values(gameState.players).sort(
-      (a, b) => b.score - a.score
-    );
+const gameState = {
+  players: {}, // { id: { x, y, color, score, direction: { dx, dy } } }
+  grid: Array(50)
+    .fill()
+    .map(() => Array(50).fill(null)), // Grille de couleurs
+  timer: timer, // Timer de jeu
+  chat: [], // Ajout d'un tableau pour stocker les messages de chat
+};
 
-    if (scorePlayerPodium.length === 0) {
-      const chatMessage0 = {
-        message: `____________________________\n🏆 Fin du jeu ! 🏆\nAucun joueur n'a participé !\n ____________________________`,
-      };
-      gameState.chat.push(chatMessage0);
-    } else {
-      switch (scorePlayerPodium.length) {
-        case 1:
-          const chatMessage1 = {
-            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}% \n ____________________________`,
-          };
-          gameState.chat.push(chatMessage1);
-          break;
+//__________________________ GESTION DES WEBSOCKETS __________________________
 
-        case 2:
-          const chatMessage2 = {
-            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}% \n ____________________________`,
-          };
-          gameState.chat.push(chatMessage2);
-          break;
+//__________________________Connexion des joueurs__________________________
 
-        case 3:
-          const chatMessage3 = {
-            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
-          };
-          gameState.chat.push(chatMessage3);
-          break;
-
-        default: // Pour les cas où il y a plus de 3 joueurs
-          const chatMessage4 = {
-            message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
-          };
-
-          gameState.chat.push(chatMessage4);
-
-          break;
-      }
-    }
-
-    // Diffuser le chat
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: "chat", chat: gameState.chat }));
-      }
-    });
-
-    gameState.timer = timer;
-    gameState.chat = [];
-    gameState.message = [];
-    gameState.grid = gameState.grid.map((row) => row.map(() => null));
-    Object.values(gameState.players).forEach((player) => (player.score = 0));
-  }
-  broadcastGameState();
-}, 1000);
-
-// Détecter et valider
-setInterval(() => {
-  Object.values(gameState.players).forEach((player) => {
-    if (player) {
-      // Mise à jour des positions en fonction de la direction
-      player.x = Math.max(0, Math.min(49, player.x + player.direction.dx));
-      player.y = Math.max(0, Math.min(49, player.y + player.direction.dy));
-
-      // Coloration de la grille
-      gameState.grid[player.y][player.x] = player.color;
-
-      // Calcul du score en fonction des cellules peintes
-      const totalCells = gameState.grid.flat().length;
-      const paintedCells = gameState.grid
-        .flat()
-        .filter((cell) => cell === player.color).length;
-      player.score = Math.floor((paintedCells / totalCells) * 100);
-    }
-  });
-  broadcastGameState();
-}, 50);
-
-// Diffusion de l'état du jeu à tous les clients
-function broadcastGameState() {
-  const state = JSON.stringify({ type: "update", gameState });
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(state);
-    }
-  });
-}
-
-// Gestion des connexions WebSocket
 wss.on("connection", (ws) => {
   const playerId = Math.random().toString(36).substr(2, 9);
   const playerColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
@@ -147,6 +51,7 @@ wss.on("connection", (ws) => {
   ws.send(JSON.stringify({ type: "currentPlayer", playerId }));
   broadcastGameState();
 
+  //__________________________Gestion des messages WebSocket__________________________
   ws.on("message", (message) => {
     try {
       // Analyser le message JSON
@@ -160,7 +65,6 @@ wss.on("connection", (ws) => {
             const chatMessage = { playerColor, message: data.message };
             gameState.chat.push(chatMessage);
 
-            // Diffuser le chat
             wss.clients.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(
@@ -202,7 +106,7 @@ wss.on("connection", (ws) => {
     }
   });
 
-  // Déconnexion du joueur
+  // __________________________Gestion de la déconnexion__________________________
   ws.on("close", () => {
     delete gameState.players[playerId];
     gameState.grid = gameState.grid.map((row) =>
@@ -210,6 +114,105 @@ wss.on("connection", (ws) => {
     );
     broadcastGameState();
   });
+
+  //__________________________Fonction de diffusion de l'état du jeu________________
+  function broadcastGameState() {
+    const state = JSON.stringify({ type: "update", gameState });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(state);
+      }
+    });
+  }
+
+  //__________________________Gestion du jeu__________________________
+  // mise à jour de la position des joueurs et de la grille (toutes les 50 ms)
+  setInterval(() => {
+    Object.values(gameState.players).forEach((player) => {
+      if (player) {
+        // Mise à jour des positions en fonction de la direction
+        player.x = Math.max(0, Math.min(49, player.x + player.direction.dx));
+        player.y = Math.max(0, Math.min(49, player.y + player.direction.dy));
+
+        // Coloration de la grille
+        gameState.grid[player.y][player.x] = player.color;
+
+        // Calcul du score en fonction des cellules peintes
+        const totalCells = gameState.grid.flat().length;
+        const paintedCells = gameState.grid
+          .flat()
+          .filter((cell) => cell === player.color).length;
+        player.score = Math.floor((paintedCells / totalCells) * 100);
+      }
+    });
+    broadcastGameState();
+  }, 50);
+
+  // Réinitialisation périodique de la grille et des scores (toutes les secondes)
+  setInterval(() => {
+    gameState.timer -= 1;
+    if (gameState.timer <= 0) {
+      //diffuser une message dans le chat pour annoncer la fin du jeu avec le score des joueurs
+      //creation tableau des scores
+      const scores = Object.values(gameState.players).map(
+        (player) => `${player.color}: ${player.score}%`
+      );
+      const scorePlayerPodium = Object.values(gameState.players).sort(
+        (a, b) => b.score - a.score
+      );
+
+      if (scorePlayerPodium.length === 0) {
+        const chatMessage0 = {
+          message: `____________________________\n🏆 Fin du jeu ! 🏆\nAucun joueur n'a participé !\n ____________________________`,
+        };
+        gameState.chat.push(chatMessage0);
+      } else {
+        switch (scorePlayerPodium.length) {
+          case 1:
+            const chatMessage1 = {
+              message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}% \n ____________________________`,
+            };
+            gameState.chat.push(chatMessage1);
+            break;
+
+          case 2:
+            const chatMessage2 = {
+              message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}% \n ____________________________`,
+            };
+            gameState.chat.push(chatMessage2);
+            break;
+
+          case 3:
+            const chatMessage3 = {
+              message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
+            };
+            gameState.chat.push(chatMessage3);
+            break;
+
+          default: // Pour les cas où il y a plus de 3 joueurs
+            const chatMessage4 = {
+              message: `____________________________\n🏆 Fin du jeu ! 🏆\n🥇 ${scorePlayerPodium[0].color} : ${scorePlayerPodium[0].score}%\n🥈 ${scorePlayerPodium[1].color} : ${scorePlayerPodium[1].score}%\n🥉 ${scorePlayerPodium[2].color} : ${scorePlayerPodium[2].score}% \n ____________________________`,
+            };
+
+            gameState.chat.push(chatMessage4);
+
+            break;
+        }
+      }
+      // Diffuser le chat
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "chat", chat: gameState.chat }));
+        }
+      });
+      gameState.timer = timer;
+      gameState.chat = [];
+      gameState.message = [];
+      gameState.grid = gameState.grid.map((row) => row.map(() => null));
+      Object.values(gameState.players).forEach((player) => (player.score = 0));
+    }
+    broadcastGameState();
+  }, 1000);
 });
 
 // Rendre le front-end React

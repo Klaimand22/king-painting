@@ -1,10 +1,9 @@
 /** @format */
 
 import React, { useEffect, useState, useRef } from "react";
-
+//___________________DECLARATION DES VARIABLES_______________________
 const GRID_SIZE = 50;
 const CELL_SIZE = 10;
-
 const Game = () => {
   const [grid, setGrid] = useState(
     Array(GRID_SIZE)
@@ -32,21 +31,16 @@ const Game = () => {
       wsRef.current.send(JSON.stringify({ type: "sound", soundIndex: index }));
     }
   };
-
+  //___________________GESTION DES WEBSOCKETS_______________________
   useEffect(() => {
     const wsUrl = process.env.REACT_APP_WEBSOCKET_URL;
 
     if (!wsUrl) {
-      console.error(
-        "Aucune URL WebSocket définie. Vérifiez REACT_APP_WEBSOCKET_URL."
-      );
+      console.error("Aucune URL WebSocket");
       return;
     }
 
-    // Connexion au serveur WebSocket
-
     wsRef.current = new WebSocket(wsUrl);
-
     wsRef.current.onopen = () => {
       console.log("Connexion établie avec le serveur WebSocket");
     };
@@ -54,10 +48,9 @@ const Game = () => {
     wsRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       if (data.type === "currentPlayer") {
-        setCurrentPlayer(data.playerId); // Stocker l'ID du joueur courant
-        console.log("Vous êtes le joueur", data.playerId);
+        setCurrentPlayer(data.playerId);
+        console.log("Joueur : ", data.playerId);
       }
-
       if (data.type === "update") {
         setGrid(data.gameState.grid);
         setPlayers(data.gameState.players);
@@ -91,12 +84,13 @@ const Game = () => {
       );
     }
   };
-
+  //___________________GESTION DES TOUCHES_______________________
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  //___________________ENVOI DE MESSAGES_______________________
   const sendMessage = () => {
     if (message.trim()) {
       wsRef.current.send(JSON.stringify({ type: "chat", message }));
@@ -104,6 +98,7 @@ const Game = () => {
     }
   };
 
+  //___________________SCROLL AUTOMATIQUE DU CHAT_______________________
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -112,7 +107,7 @@ const Game = () => {
 
   return (
     <div className="h-screen bg-black text-white flex w-screen min-h-screen overflow-y-auto">
-      {/* Tableau des scores */}
+      {/* _______________________Tableau des Scores_______________________ */}
       <aside className="w-64 bg-black p-4 flex flex-col items-start border-r border-white h-full min-h-0">
         <h1 className="text-xl font-bold mb-4">Tableau des Scores</h1>
         <div className="flex flex-col gap-3 overflow-y-auto">
@@ -139,7 +134,7 @@ const Game = () => {
             ))}
         </div>
       </aside>
-      {/* Aire de jeu */}
+      {/* _______________________Jeu_______________________ */}
       <main className="flex-1 flex flex-col items-center justify-center min-h-0">
         <h1 className="text-5xl font-bold mb-8">King-Painting</h1>
         <div className="text-2xl font-bold mb-16">
@@ -180,7 +175,7 @@ const Game = () => {
           ))}
         </div>
       </main>
-      {/* Chat et Soundboard */}
+      {/*____________________________________Chat et Soundboard_______________________________________*/}
       <aside className="bg-black p-4 flex flex-col items-start border-l border-white h-full min-h-0">
         <h1 className="text-xl font-bold mb-4">Chat en ligne</h1>
         <div className="flex flex-col gap-2 mb-4 overflow-y-auto h-64 w-full">
@@ -188,7 +183,10 @@ const Game = () => {
             <div key={index} className="text-sm">
               <span className="text-gray-400">
                 {msg.message.split("\n").map((line, lineIndex) => {
-                  const colorMatch = line.match(/#([0-9a-fA-F]{6})/); // Correspondance des couleurs hexadécimales
+                  {
+                    /*____________________________________REDECOUPE LE TEXTE_______________________________________*/
+                  }
+                  const colorMatch = line.match(/#([0-9a-fA-F]{6})/);
                   const scoreMatch = line;
                   const message = line.replace(/#([0-9a-fA-F]{6})/g, "");
 
@@ -224,7 +222,6 @@ const Game = () => {
               </span>
             </div>
           ))}
-
           <div ref={chatEndRef} />
         </div>
         <div className="flex items-center gap-2">
