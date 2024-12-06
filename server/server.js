@@ -35,15 +35,14 @@ setInterval(() => {
   gameState.timer -= 1;
   if (gameState.timer <= 0) {
     //diffuser une message dans le chat pour annoncer la fin du jeu avec le score des joueurs
+    //creation tableau des scores
     const scores = Object.values(gameState.players).map(
       (player) => `${player.color}: ${player.score}%`
     );
-
     const scorePlayerPodium = Object.values(gameState.players).sort(
       (a, b) => b.score - a.score
     );
 
-    // GERER LES CAS SELON LE NOMBRE DE JOUEURS
     if (scorePlayerPodium.length === 0) {
       const chatMessage0 = {
         message: `____________________________\n🏆 Fin du jeu ! 🏆\nAucun joueur n'a participé !\n ____________________________`,
@@ -90,7 +89,6 @@ setInterval(() => {
       }
     });
 
-    // vider les variables du jeu pour une nouvelle partie afin d'optimiser la mémoire
     gameState.timer = timer;
     gameState.chat = [];
     gameState.message = [];
@@ -100,9 +98,7 @@ setInterval(() => {
   broadcastGameState();
 }, 1000);
 
-// Fonction pour détecter des zones connectées (Flood Fill)
-
-// Détecter et valider des formes fermées
+// Détecter et valider
 setInterval(() => {
   Object.values(gameState.players).forEach((player) => {
     if (player) {
@@ -121,7 +117,6 @@ setInterval(() => {
       player.score = Math.floor((paintedCells / totalCells) * 100);
     }
   });
-
   broadcastGameState();
 }, 50);
 
@@ -150,7 +145,6 @@ wss.on("connection", (ws) => {
 
   // Envoyer l'ID du joueur courant au client
   ws.send(JSON.stringify({ type: "currentPlayer", playerId }));
-
   broadcastGameState();
 
   ws.on("message", (message) => {
@@ -222,6 +216,12 @@ wss.on("connection", (ws) => {
 app.use(express.static(path.resolve(__dirname, "../build")));
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../build", "index.html"));
+});
+
+//renvoie le nombre de joueur
+
+app.post("/api/players", (req, res) => {
+  res.json(Object.values(gameState.players).length);
 });
 
 server.listen(port, () => {
