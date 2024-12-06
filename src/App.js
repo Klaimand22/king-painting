@@ -2,23 +2,29 @@
 
 import React from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import { KeyboardIcon, PaintbrushIcon } from "lucide-react";
+import { PaintbrushIcon } from "lucide-react";
 import Game from "./Game";
+import { useState } from "react";
 
 // fetch en post pour récupérer le nombre de joueurs /api/players
 
-const [nombreJoueurs, setNombreJoueurs] = useState(0);
-fetch("/api/players", {
-  method: "POST",
-})
-  .then((response) => response.json())
-  .then((data) => {
-    setNombreJoueurs(data);
-    console.log("Nombre de joueurs en ligne :", nombreJoueurs);
-  });
-
 // Composants pour chaque page
 function Home() {
+  const [nombreJoueurs, setNombreJoueurs] = useState(0);
+  fetch("/api/players", {
+    method: "POST",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      setNombreJoueurs(data);
+      console.log("Nombre de joueurs en ligne :", nombreJoueurs);
+    });
+
+  // si connexion sur mobile alors on redirige vers le composant Phone
+  if (window.innerWidth < 768) {
+    return <Phone />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-secondary-background">
       <div className="text-center space-y-16 p-32 bg-red-400 text-white rounded-xl shadow-xl">
@@ -46,6 +52,16 @@ function Home() {
 
 function JoinGame() {
   return <Game />;
+}
+
+function Phone() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-secondary-background bg-red-400">
+      <h1 className="text-4xl font-bold text-white text-center">
+        King-Painting est disponible uniquement sur ordinateur
+      </h1>
+    </div>
+  );
 }
 
 // Application principale
