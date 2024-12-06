@@ -9,6 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const port = process.env.PORT || 8080;
+const timer = 60;
 
 // Configuration de l'état du jeu
 const gameState = {
@@ -16,7 +17,7 @@ const gameState = {
   grid: Array(50)
     .fill()
     .map(() => Array(50).fill(null)), // Grille de couleurs
-  timer: 10,
+  timer: timer, // Timer de jeu
   chat: [], // Ajout d'un tableau pour stocker les messages de chat
 };
 
@@ -77,6 +78,7 @@ setInterval(() => {
           };
 
           gameState.chat.push(chatMessage4);
+
           break;
       }
     }
@@ -88,14 +90,19 @@ setInterval(() => {
       }
     });
 
-    gameState.timer = 60;
+    // vider les variables du jeu pour une nouvelle partie afin d'optimiser la mémoire
+    gameState.timer = timer;
+    gameState.chat = [];
+    gameState.message = [];
     gameState.grid = gameState.grid.map((row) => row.map(() => null));
     Object.values(gameState.players).forEach((player) => (player.score = 0));
   }
   broadcastGameState();
 }, 1000);
 
-// Mise à jour automatique des positions des joueurs
+// Fonction pour détecter des zones connectées (Flood Fill)
+
+// Détecter et valider des formes fermées
 setInterval(() => {
   Object.values(gameState.players).forEach((player) => {
     if (player) {
@@ -114,8 +121,9 @@ setInterval(() => {
       player.score = Math.floor((paintedCells / totalCells) * 100);
     }
   });
+
   broadcastGameState();
-}, 50); // Mise à jour toutes les 50ms
+}, 50);
 
 // Diffusion de l'état du jeu à tous les clients
 function broadcastGameState() {

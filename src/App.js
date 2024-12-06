@@ -53,14 +53,6 @@ const App = () => {
 
     wsRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
-
-      if (data.type === "sound") {
-        // Lecture du son reçu
-        //const audio = new Audio(`/sounds/${data.sound}`);
-        //audio.play();
-        console.log("Son reçu :", data.sound);
-      }
-
       if (data.type === "currentPlayer") {
         setCurrentPlayer(data.playerId); // Stocker l'ID du joueur courant
         console.log("Vous êtes le joueur", data.playerId);
