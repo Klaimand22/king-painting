@@ -5,13 +5,15 @@ import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import { KeyboardIcon, PaintbrushIcon } from "lucide-react";
 import Game from "./Game";
 
-// fetch /api/players pour récupérer le nombre de joueurs
+// fetch en post pour récupérer le nombre de joueurs /api/players
 let nombreJoueurs = 0;
-fetch("/api/players")
-  .then((res) => res.json())
+fetch("/api/players", {
+  method: "POST",
+})
+  .then((response) => response.json())
   .then((data) => {
-    console.log(data);
     nombreJoueurs = data;
+    console.log("Nombre de joueurs :", nombreJoueurs);
   });
 
 // Composants pour chaque page
