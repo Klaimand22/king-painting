@@ -13,6 +13,10 @@ Le but du jeu est de colorier le plus de cases possible en un temps limité. Le 
 Pour installer le back, il faut se rendre dans le dossier server et lancer la commande suivante:
 
 ```bash
+cd server
+```
+
+```bash
 npm install
 ```
 
