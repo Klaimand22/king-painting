@@ -218,8 +218,7 @@ app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../build", "index.html"));
 });
 
-//renvoie le nombre de joueur
-
+//renvoie le nombre de joueur (menu accueil)
 app.post("/api/players", (req, res) => {
   res.json(Object.values(gameState.players).length);
 });

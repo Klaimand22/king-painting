@@ -38,7 +38,7 @@ function Home() {
             to="/game"
             className="btn btn-primary bg-white p-4 text-black rounded-xl hover:bg-red-400 transition-all duration-500 hover:text-white px-8 mt-7"
           >
-            Rejoindre la partie public
+            Rejoindre la partie publique
           </Link>
         </div>
         <h2 className="text-muted-foreground text-sm">
