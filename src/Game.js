@@ -33,7 +33,7 @@ const Game = () => {
   };
   //___________________GESTION DES WEBSOCKETS_______________________
   useEffect(() => {
-    const wsUrl = process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:7312";
+    const wsUrl = process.env.REACT_APP_WEBSOCKET_URL;
 
     if (!wsUrl) {
       console.error("Aucune URL WebSocket");

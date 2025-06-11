@@ -6,12 +6,13 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const WebSocket = require("ws");
+require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const port = process.env.PORT || 7312;
-const basePath = process.env.BASE_PATH || "/michellc";
+const port = process.env.PORT_BACK;
+const basePath = process.env.BASE_PATH;
 const timer = 60;
 
 const sounds = [
@@ -155,7 +156,6 @@ app.post(`${basePath}/api/players`, (req, res) => {
 });
 
 server.listen(port, () => {
-  clear();
   const separator = "═".repeat(50);
   console.log(`\n${separator}`);
   console.log("✨ Serveur WebSocket et Express démarré avec succès ! ✨");
